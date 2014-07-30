@@ -177,7 +177,10 @@ containing a value of this type.
         public static final int icono=0x7f02001d;
     }
     public static final class id {
+        public static final int btnEliminar=0x7f05000c;
         public static final int btnGuardar=0x7f050008;
+        public static final int btnModificar=0x7f05000b;
+        public static final int etTitulo=0x7f05000a;
         public static final int etxtLatitud=0x7f050005;
         public static final int etxtLongitud=0x7f050006;
         public static final int etxtTitulo=0x7f050007;
@@ -191,6 +194,7 @@ containing a value of this type.
     public static final class layout {
         public static final int activity_formualrio=0x7f030000;
         public static final int activity_mapa=0x7f030001;
+        public static final int formulario_modificar=0x7f030002;
     }
     public static final class string {
         public static final int app_name=0x7f060019;

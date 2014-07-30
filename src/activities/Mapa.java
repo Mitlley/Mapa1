@@ -1,9 +1,26 @@
 package activities;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
@@ -11,10 +28,12 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.talleres.android.mapa.R;
 
@@ -25,6 +44,7 @@ public class Mapa extends FragmentActivity {
 	GoogleMap googleMap;
 	
 	private SQLiteDatabase lectura;
+	private Handler handler;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -32,8 +52,64 @@ public class Mapa extends FragmentActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_mapa);
 		
+		handler = new Handler();
+		
+		// ============================================================================
+		Thread proceso_internet = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				String contenido_pagina = obtenerContenido("http://mitlley.cl/android/lugares.json");
+				
+				try {
+					
+					JSONArray lugares = new JSONArray(contenido_pagina);
+					
+					for(int i = 0; i < lugares.length(); i++){
+						final JSONObject lugar = lugares.getJSONObject(i);
+						handler.post(new Runnable() {
+							
+							@Override
+							public void run() {
+								// TODO Auto-generated method stub
+								try {
+									
+									MarkerOptions marcador = new MarkerOptions();
+									marcador.title(lugar.getString("nombre"));
+									
+									double latitud = Double.parseDouble(lugar.getString("lat"));
+									double longitud = Double.parseDouble(lugar.getString("lon"));
+									
+									LatLng posicion = new LatLng(latitud, longitud);
+									marcador.position(posicion);
+									
+									marcador.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+									googleMap.addMarker(marcador);
+									
+								} catch (JSONException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+						});
+					}
+					
+					
+					
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+		});
+		
+		// ============================================================================
 		googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 		googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+		
+		proceso_internet.start();
 		
 		LatLng punto = new LatLng(-36.6, -72.11666);
 		
@@ -113,6 +189,73 @@ public class Mapa extends FragmentActivity {
 			Log.i("BASEDATOS", titulo);
 		}
 		
+		googleMap.setOnMarkerClickListener(new OnMarkerClickListener() {
+			
+			@Override
+			public boolean onMarkerClick(Marker arg0) {
+				// TODO Auto-generated method stub
+				
+				String titulo = arg0.getTitle();				
+				LatLng posicion = arg0.getPosition();
+				
+				String lat = posicion.latitude + "";
+				
+				Intent intent = new Intent(Mapa.this, FormularioModificar.class);
+				
+				Bundle info = new Bundle();
+				info.putString("titulo", titulo);
+				info.putString("lat", lat);
+				
+				intent.putExtra("datos", info);
+				startActivity(intent);
+				
+				return false;
+			}
+		});
+		
+	}
+	
+	
+	
+	private String obtenerContenido(String url){
+		StringBuilder builder = new StringBuilder();
+		HttpClient cliente = new DefaultHttpClient();
+		HttpGet httpGet = new HttpGet(url);
+		
+		try {
+			
+			HttpResponse respuesta = cliente.execute(httpGet);
+			StatusLine lineaEstado = respuesta.getStatusLine();
+			int codigo = lineaEstado.getStatusCode();
+			if(codigo == 200){
+				HttpEntity entidad = respuesta.getEntity();
+				InputStream contenido = entidad.getContent();
+				BufferedReader lector = new BufferedReader(new InputStreamReader(contenido));
+				String linea;
+				while((linea = lector.readLine()) != null){
+					builder.append(linea);
+				}
+			}
+			
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return builder.toString();
 	}
 
 }
+
+
+
+
+
+
+
+
+
+
