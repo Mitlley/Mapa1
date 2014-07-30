@@ -37,6 +37,11 @@
             
         </activity>
         
+        <activity android:name="activities.Formulario"
+            android:label="Guardar Lugar"
+            ></activity>
+        
+        
         <meta-data 
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyCkEmJQHT3IKxBwizm2YumQva6BhdMjz-4"/>
