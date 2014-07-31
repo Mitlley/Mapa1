@@ -66,6 +66,8 @@ public class Formulario extends Activity {
 				Toast mensaje = Toast.makeText(getApplicationContext(), "Guardado con exito.", Toast.LENGTH_SHORT);
 				mensaje.show();
 				
+				finish();
+				
 			}
 		});
 		

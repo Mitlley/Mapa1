@@ -23,6 +23,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -45,71 +48,26 @@ public class Mapa extends FragmentActivity {
 	
 	private SQLiteDatabase lectura;
 	private Handler handler;
+	private Button btnCambiar;
+	
+	private int[] tiposMapas = new int[]{GoogleMap.MAP_TYPE_HYBRID, GoogleMap.MAP_TYPE_NORMAL, GoogleMap.MAP_TYPE_SATELLITE, GoogleMap.MAP_TYPE_TERRAIN};
+	private int tipo = 0;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_mapa);
-		
+		Log.e("CICLO DE VIDA", "CREATE");
 		handler = new Handler();
 		
-		// ============================================================================
-		Thread proceso_internet = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				String contenido_pagina = obtenerContenido("http://mitlley.cl/android/lugares.json");
-				
-				try {
-					
-					JSONArray lugares = new JSONArray(contenido_pagina);
-					
-					for(int i = 0; i < lugares.length(); i++){
-						final JSONObject lugar = lugares.getJSONObject(i);
-						handler.post(new Runnable() {
-							
-							@Override
-							public void run() {
-								// TODO Auto-generated method stub
-								try {
-									
-									MarkerOptions marcador = new MarkerOptions();
-									marcador.title(lugar.getString("nombre"));
-									
-									double latitud = Double.parseDouble(lugar.getString("lat"));
-									double longitud = Double.parseDouble(lugar.getString("lon"));
-									
-									LatLng posicion = new LatLng(latitud, longitud);
-									marcador.position(posicion);
-									
-									marcador.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
-									googleMap.addMarker(marcador);
-									
-								} catch (JSONException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-							}
-						});
-					}
-					
-					
-					
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-			}
-		});
+		btnCambiar = (Button) findViewById(R.id.btnCambiar);
+		
+		
 		
 		// ============================================================================
 		googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 		googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-		
-		proceso_internet.start();
 		
 		LatLng punto = new LatLng(-36.6, -72.11666);
 		
@@ -135,6 +93,15 @@ public class Mapa extends FragmentActivity {
 				
 				double nueva_latitud = arg0.latitude;
 				double nueva_longitud = arg0.longitude;
+				
+				Bundle info = new Bundle();
+				info.putDouble("lat", nueva_latitud);
+				info.putDouble("lon", nueva_longitud);
+				
+				Intent traspaso = new Intent(Mapa.this, Clima.class);
+				traspaso.putExtra("datos", info);
+				
+				startActivity(traspaso);
 				
 				Log.d("MAPA", "Mi latitud: " + nueva_latitud + ", Mi longitud: " + nueva_longitud);
 			}
@@ -163,6 +130,53 @@ public class Mapa extends FragmentActivity {
 		});
 		
 		
+		googleMap.setOnMarkerClickListener(new OnMarkerClickListener() {
+			
+			@Override
+			public boolean onMarkerClick(Marker arg0) {
+				// TODO Auto-generated method stub
+				
+				String titulo = arg0.getTitle();				
+				LatLng posicion = arg0.getPosition();
+				
+				String lat = posicion.latitude + "";
+				
+				Intent intent = new Intent(Mapa.this, FormularioModificar.class);
+				
+				Bundle info = new Bundle();
+				info.putString("titulo", titulo);
+				info.putString("lat", lat);
+				
+				intent.putExtra("datos", info);
+				startActivity(intent);
+				
+				return false;
+			}
+		});
+		
+		btnCambiar.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View arg0) {
+				// TODO Auto-generated method stub
+				googleMap.setMapType(tiposMapas[tipo]);
+				
+				tipo++;
+				
+				if(tipo >= tiposMapas.length){
+					tipo = 0;
+				}
+			}
+		});
+		
+	}
+	
+	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+		super.onStart();
+		googleMap.clear();
+		
 		BaseDatosHelper bdHelper = new BaseDatosHelper(this, "LUGARES", null, 1);
 		lectura = bdHelper.getReadableDatabase();
 		
@@ -189,33 +203,63 @@ public class Mapa extends FragmentActivity {
 			Log.i("BASEDATOS", titulo);
 		}
 		
-		googleMap.setOnMarkerClickListener(new OnMarkerClickListener() {
-			
-			@Override
-			public boolean onMarkerClick(Marker arg0) {
-				// TODO Auto-generated method stub
-				
-				String titulo = arg0.getTitle();				
-				LatLng posicion = arg0.getPosition();
-				
-				String lat = posicion.latitude + "";
-				
-				Intent intent = new Intent(Mapa.this, FormularioModificar.class);
-				
-				Bundle info = new Bundle();
-				info.putString("titulo", titulo);
-				info.putString("lat", lat);
-				
-				intent.putExtra("datos", info);
-				startActivity(intent);
-				
-				return false;
-			}
-		});
+		// ============================================================================
+				Thread proceso_internet = new Thread(new Runnable() {
+					
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						String contenido_pagina = obtenerContenido("http://mitlley.cl/android/lugares.json");
+						
+						try {
+							
+							JSONArray lugares = new JSONArray(contenido_pagina);
+							
+							for(int i = 0; i < lugares.length(); i++){
+								final JSONObject lugar = lugares.getJSONObject(i);
+								handler.post(new Runnable() {
+									
+									@Override
+									public void run() {
+										// TODO Auto-generated method stub
+										try {
+											
+											MarkerOptions marcador = new MarkerOptions();
+											marcador.title(lugar.getString("nombre"));
+											
+											double latitud = Double.parseDouble(lugar.getString("lat"));
+											double longitud = Double.parseDouble(lugar.getString("lon"));
+											
+											LatLng posicion = new LatLng(latitud, longitud);
+											marcador.position(posicion);
+											
+											marcador.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+											googleMap.addMarker(marcador);
+											
+										} catch (JSONException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										}
+									}
+								});
+							}
+							
+							
+							
+						} catch (JSONException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+					}
+				});
+		
+		if(!proceso_internet.isInterrupted()){
+			proceso_internet.interrupt();
+		}
+		proceso_internet.start();
 		
 	}
-	
-	
 	
 	private String obtenerContenido(String url){
 		StringBuilder builder = new StringBuilder();

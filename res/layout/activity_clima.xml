@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+    
+	<TextView
+	    android:id="@+id/tvCiudad"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:text="Ciudad"
+	    android:textColor="#309dff"
+	    android:textStyle="bold"
+	    android:textSize="24sp"
+	    android:padding="5dp" />
+	
+	<TextView
+	    android:id="@+id/tvPronostico"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:text="Pronostico"
+	    android:textStyle="bold"
+	    android:textSize="18sp"
+	    android:padding="5dp" />
+
+	<TextView
+	    android:id="@+id/tvDescripcion"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:text="Descripcion"
+	    android:textAppearance="?android:attr/textAppearanceSmall"
+	    android:padding="5dp" />
+	
+	<TextView
+	    android:id="@+id/tvTmpMin"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:text="Minima"
+	    android:textStyle="bold"
+	    android:textSize="18sp"
+	    android:padding="5dp" />
+	
+	<TextView
+	    android:id="@+id/tvTmpMax"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:text="Maxima"
+	    android:textStyle="bold"
+	    android:textSize="18sp"
+	    android:padding="5dp" />
+
+	<ProgressBar
+	    android:id="@+id/pbCarga"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content" />
+    
+</LinearLayout>

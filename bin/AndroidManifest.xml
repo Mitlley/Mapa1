@@ -45,6 +45,10 @@
             android:label="Modificar Lugar"
             ></activity>
         
+        <activity android:name="activities.Clima"
+            android:label="Pronostico"
+            ></activity>
+        
         
         <meta-data 
             android:name="com.google.android.maps.v2.API_KEY"
